@@ -6,7 +6,7 @@ const {UserService} = require('../services')
 
 class AuthController {
     signup = catchAsync(async (req, res, next) => {
-        const [user, created] = await UserService.signup(req.body)
+        const [created, data] = await UserService.signup(req.body)
 
         if (!created) {
             return next(new GlobalError('user already exist', 400))
@@ -16,7 +16,7 @@ class AuthController {
             res,
             201,
             'created',
-            _.omit(user.toJSON(), ['password'])
+            _.omit(data, ['password'])
         )
     })
     signin = (req, res) => {
