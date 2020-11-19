@@ -8,10 +8,6 @@ class TaskController {
     getTasks = catchAsync(async (req, res) => {
         const userId = req.user.id
         const projectId = req.params.projectId
-        console.log(req)
-
-        console.log(req.params)
-
         const tasks = await TaskService.getAll(userId, projectId)
         return new GlobalResponse(res,200,'done', tasks)
     })

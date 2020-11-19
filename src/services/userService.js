@@ -9,22 +9,34 @@ class UserService {
         const password = await hashPassword(data.password)
         const email = data.email.toLowerCase()
         const payload = {
-            ...data,
             password,
             email
         }
 
-        return await User.findOrCreate({
+        const [result, created] = await User.findOrCreate({
             where: {email: payload.email},
             defaults: {...payload}
         })
+
+        if (!created) {
+            return [false, null]
+        }
+
+        const user = result.dataValues
+
+        const [token, refreshToken] = getTokens(user)
+
+        return [
+            true,
+            {
+                ...user,
+                token,
+                refreshToken
+            }
+        ]
     }
     signIn = user =>  {
-        const refreshSecret = process.env.JWT_REFRESH_KEY + user.password
-
-        const [token, refreshToken] = createTokens({
-            id: user.id
-        }, refreshSecret)
+        const [token, refreshToken] = getTokens(user)
 
         return {
             ...user,
@@ -40,6 +52,14 @@ class UserService {
             where: {email: email},
         })
     }
+}
+
+const getTokens = user => {
+    const refreshSecret = process.env.JWT_REFRESH_KEY + user.password
+
+    return createTokens({
+        id: user.id
+    }, refreshSecret)
 }
 
 module.exports = new UserService()
